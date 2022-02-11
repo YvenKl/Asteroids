@@ -162,7 +162,7 @@ class CatAnimation(object):
             elif event.type == KEYDOWN:
                 if event.key == K_ESCAPE:
                     self.running = False
-                elif event.key == K_SPACE:
+                elif event.key == K_LEFT:
                     if Settings.rotate <= 359:
                         Settings.rotate += 22.5
                         #Settings.player_vel_x = Settings.player_vel_x - math.sin(math.radians(Settings.rotate))
@@ -171,6 +171,11 @@ class CatAnimation(object):
                         Settings.rotate = 22.5
                         #Settings.player_vel_x = Settings.player_vel_x - math.sin(math.radians(Settings.rotate))
                         #Settings.player_vel_y = Settings.player_vel_y - math.cos(math.radians(Settings.rotate))
+                elif event.key == K_RIGHT:
+                    if Settings.rotate >= 1:
+                        Settings.rotate -= 22.5
+                    else:
+                        Settings.rotate = 337.5
 
     def update(self) -> None:
         self.cat.update()
