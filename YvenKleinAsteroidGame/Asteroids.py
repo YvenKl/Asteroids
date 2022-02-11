@@ -10,6 +10,8 @@ class Settings(object):
     fps = 60
     title = "Animation"
     path = {}
+    path_file = os.path.dirname(os.path.abspath(__file__))
+    path_image = os.path.join(path_file, "images")
     path['file'] = os.path.dirname(os.path.abspath(__file__))
     path['image'] = os.path.join(path['file'], "images")
     directions = {'stop':(0, 0), 'down':(0,  1), 'up':(0, -1), 'left':(-1, 0), 'right':(1, 0)}
@@ -85,22 +87,44 @@ class Animation(object):
             return False
 
 
+class Background(object):
+    def __init__(self, filename="background.jpg") -> None:
+        super().__init__()
+        self.image = pygame.image.load(os.path.join(Settings.path_image, filename)).convert()
+        self.image = pygame.transform.scale(self.image, (Settings.window_width, Settings.window_height))
+
+    def draw(self, screen):
+        screen.blit(self.image, (0, 0))
+
+
 class Cat(pygame.sprite.Sprite):
     def __init__(self):
         super().__init__()
         self.ogimage = pygame.image.load("images/player_ship.png")
-        self.animation=Animation([f"player_ship.png" for i in range(1)], True, 100, (0,0,0)) # §\label{srcAnimation0102}§
+        self.animation = Animation([f"player_ship.png" for i in range(1)], True, 100, (0,0,0)) # §\label{srcAnimation0102}§
         self.image = self.animation.next()
         self.rect = self.image.get_rect()
         self.rect.center = (Settings.window_width // 2, Settings.window_height // 2)
         self.x_vel = 0
         self.y_vel = 0
+        self.pos = 0
 
     def update(self):
+        self.off_map()
         self.movement()
         #self.image = self.animation.next()
         self.rotate()
         self.rect.move_ip((self.x_vel, self.y_vel))
+
+    def off_map(self):
+        if self.rect.top + self.y_vel > Settings.window_height:
+            self.rect.move_ip((0, -Settings.window_height-self.rect.height))
+        if self.rect.bottom + self.y_vel < 0:
+            self.rect.move_ip((0, Settings.window_height+self.rect.height))
+        if self.rect.right + self.x_vel < 0:
+            self.rect.move_ip((Settings.window_width+self.rect.left, 0))
+        if self.rect.left + self.x_vel > Settings.window_width:
+            self.rect.move_ip((-Settings.window_width-self.rect.height, 0))
 
     def movement(self):
         keys = pygame.key.get_pressed()
@@ -147,6 +171,7 @@ class CatAnimation(object):
         self.running = False
 
     def run(self) -> None:
+        self.start()
         self.running = True
         while self.running:
             self.clock.tick(Settings.fps)
@@ -181,10 +206,12 @@ class CatAnimation(object):
         self.cat.update()
 
     def draw(self) -> None:
-        self.screen.fill((200, 200, 200))
+        self.background.draw(self.screen)
         self.cat.draw(self.screen)
         pygame.display.flip()
 
+    def start(self):
+        self.background = Background()
 
 
 if __name__ == '__main__':
