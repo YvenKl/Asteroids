@@ -111,14 +111,14 @@ class Cat(pygame.sprite.Sprite):
         if keys[pygame.K_UP]: #and self.rect.top - Settings.player_vel_y > 0:  # nach oben movement
             self.x_vel = self.x_vel - math.sin(math.radians(Settings.rotate))
             self.y_vel = self.y_vel - math.cos(math.radians(Settings.rotate))
-            if self.x_vel <= -2:
-                self.x_vel = -2
-            if self.x_vel >= 2:
-                self.x_vel = 2
-            if self.y_vel <= -2:
-                self.y_vel = -2
-            if self.y_vel >= 2:
-                self.y_vel = 2
+            if self.x_vel <= -10:
+                self.x_vel = -10
+            if self.x_vel >= 10:
+                self.x_vel = 10
+            if self.y_vel <= -10:
+                self.y_vel = -10
+            if self.y_vel >= 10:
+                self.y_vel = 10
             # self.rect.top += Settings.player_vel_y
             # self.rect.left += Settings.player_vel_x
         #if keys[pygame.K_DOWN] and self.rect.top + Settings.player_vel_y + self.get_height() + 15 < Settings.window_height:  # nach unten movement
