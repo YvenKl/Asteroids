@@ -122,7 +122,7 @@ class Cat(pygame.sprite.Sprite):
         if self.rect.bottom + self.y_vel < 0:
             self.rect.move_ip((0, Settings.window_height+self.rect.height))
         if self.rect.right + self.x_vel < 0:
-            self.rect.move_ip((Settings.window_width+self.rect.left, 0))
+            self.rect.move_ip((Settings.window_width-self.rect.left, 0))
         if self.rect.left + self.x_vel > Settings.window_width:
             self.rect.move_ip((-Settings.window_width-self.rect.height, 0))
 
