@@ -188,7 +188,7 @@ class Playership(pygame.sprite.Sprite):
         return self.rect.height
 
     def rotate(self):
-        self.image = pygame.transform.rotate(self.ogimage, Settings.rotate) #360= 22.5 * 16 FUNKTIONEN WEIL BEHINDERT
+        self.image = pygame.transform.rotate(self.ogimage, Settings.rotate)
         self.rect = self.image.get_rect(center=self.rect.center)
 
 
