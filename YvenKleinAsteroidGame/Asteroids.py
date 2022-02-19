@@ -2,11 +2,12 @@ import pygame
 from pygame.constants import (QUIT, K_KP_PLUS, K_KP_MINUS, K_ESCAPE, KEYDOWN, K_SPACE, K_LEFT, K_RIGHT)
 import os
 import math
+from random import randint
 
 
 class Settings(object):
-    window_width = 1200
-    window_height = 800
+    window_width = 1600
+    window_height = 1000
     fps = 60
     title = "Animation"
     path = {}
@@ -16,6 +17,10 @@ class Settings(object):
     path['image'] = os.path.join(path['file'], "images")
     directions = {'stop':(0, 0), 'down':(0,  1), 'up':(0, -1), 'left':(-1, 0), 'right':(1, 0)}
     rotate = 0
+    min_asteroid_vel = 2
+    max_asteroid_vel = 4
+    asteroid_big_cooldown = 0
+    nof_max_asteroid_big = 5
     #player_vel_x = 0
     #player_vel_y = 0
     #player_base_vel = 0
@@ -86,6 +91,34 @@ class Animation(object):
         else:
             return False
 
+class Asteroid(pygame.sprite.Sprite):
+    def __init__(self) -> None:
+        super().__init__()
+        self.image = pygame.image.load(os.path.join(Settings.path_image, "Asteroid_Brown.png")).convert_alpha()
+        self.rect = self.image.get_rect()
+        self.rect.left = randint(50, Settings.window_width-50)
+        self.rect.top = 0
+        self.speed_h = randint(Settings.min_asteroid_vel, Settings.max_asteroid_vel)
+        self.speed_v = randint(Settings.min_asteroid_vel, Settings.max_asteroid_vel)
+        self.image = pygame.transform.scale(self.image, (int(self.image.get_rect().width * 2.5),int(self.image.get_rect().height * 2.5)))
+
+    def draw(self, screen):
+        screen.blit(self.image, self.rect)
+
+    def update(self):
+        self.rect.move_ip((self.speed_h, self.speed_v))
+        self.off_map()
+
+    def off_map(self):
+        if self.rect.top + self.speed_v > Settings.window_height:
+            self.rect.move_ip((0, -Settings.window_height-self.rect.height))
+        if self.rect.bottom + self.speed_v < 0:
+            self.rect.move_ip((0, Settings.window_height+self.rect.height))
+        if self.rect.right + self.speed_h < 0:
+            self.rect.move_ip((Settings.window_width-self.rect.left, 0))
+        if self.rect.left + self.speed_h > Settings.window_width:
+            self.rect.move_ip((-Settings.window_width-self.rect.height, 0))
+
 
 class Background(object):
     def __init__(self, filename="background.jpg") -> None:
@@ -97,7 +130,7 @@ class Background(object):
         screen.blit(self.image, (0, 0))
 
 
-class Cat(pygame.sprite.Sprite):
+class Playership(pygame.sprite.Sprite):
     def __init__(self):
         super().__init__()
         self.ogimage = pygame.image.load("images/player_ship.png")
@@ -159,7 +192,7 @@ class Cat(pygame.sprite.Sprite):
         self.rect = self.image.get_rect(center=self.rect.center)
 
 
-class CatAnimation(object):
+class Game(object):
     def __init__(self) -> None:
         super().__init__()
         os.environ['SDL_VIDEO_WINDOW_POS'] = "10, 50"
@@ -167,7 +200,8 @@ class CatAnimation(object):
         self.screen = pygame.display.set_mode(Settings.dim())
         pygame.display.set_caption(Settings.title)
         self.clock = pygame.time.Clock()
-        self.cat = pygame.sprite.GroupSingle(Cat())
+        self.playership = pygame.sprite.GroupSingle(Playership())
+        self.asteroid = pygame.sprite.Group(Asteroid())
         self.running = False
 
     def run(self) -> None:
@@ -179,6 +213,17 @@ class CatAnimation(object):
             self.update()
             self.draw()
         pygame.quit()
+
+    def spawning_of_asteroids(self):
+        Settings.asteroid_big_cooldown += 1
+        if Settings.asteroid_big_cooldown >= 180:
+            Settings.asteroid_big_cooldown = 0
+            if len(self.asteroid.sprites()) < Settings.nof_max_asteroid_big:
+                self.asteroid.add(Asteroid())
+
+    def groupcollide(self):
+        if pygame.sprite.groupcollide(self.playership, self.asteroid, False, False, pygame.sprite.collide_rect):
+            self.running = False
 
     def watch_for_events(self) -> None:
         for event in pygame.event.get():
@@ -203,11 +248,15 @@ class CatAnimation(object):
                         Settings.rotate = 337.5
 
     def update(self) -> None:
-        self.cat.update()
+        self.spawning_of_asteroids()
+        self.playership.update()
+        self.asteroid.update()
+        self.groupcollide()
 
     def draw(self) -> None:
         self.background.draw(self.screen)
-        self.cat.draw(self.screen)
+        self.playership.draw(self.screen)
+        self.asteroid.draw(self.screen)
         pygame.display.flip()
 
     def start(self):
@@ -215,6 +264,6 @@ class CatAnimation(object):
 
 
 if __name__ == '__main__':
-    anim = CatAnimation()
+    anim = Game()
     anim.run()
 
