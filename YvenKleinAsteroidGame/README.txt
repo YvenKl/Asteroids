@@ -1,1 +1,4 @@
-g
+-Es spawnen nur maximal 5 große Asteroiden
+-Diese Spawnen random an der pberen Kante des Spielfensters
+-Deren Geschwindigkeit ist random, aber sie gehen nach der logic, dass man in einem Orbit eines Planeten ist, deshalb gehen sie nur nach [Osten, Südost, Süden]
+-Das Spiel wird beendet wenn das Raumschiff mit einem Asteroiden kollidiert
