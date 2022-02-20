@@ -111,13 +111,13 @@ class Asteroid(pygame.sprite.Sprite):
 
     def off_map(self):
         if self.rect.top + self.speed_v > Settings.window_height:
-            self.rect.move_ip((0, -Settings.window_height-self.rect.height))
+            self.rect.move_ip((0, -Settings.window_height))
         if self.rect.bottom + self.speed_v < 0:
-            self.rect.move_ip((0, Settings.window_height+self.rect.height))
+            self.rect.move_ip((0, Settings.window_height))
         if self.rect.right + self.speed_h < 0:
-            self.rect.move_ip((Settings.window_width-self.rect.left, 0))
+            self.rect.move_ip((Settings.window_width, 0))
         if self.rect.left + self.speed_h > Settings.window_width:
-            self.rect.move_ip((-Settings.window_width-self.rect.height, 0))
+            self.rect.move_ip((-Settings.window_width, 0))
 
 
 class Background(object):
