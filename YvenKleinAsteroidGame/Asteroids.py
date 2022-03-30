@@ -21,6 +21,7 @@ class Settings(object):
     max_asteroid_vel = 4
     asteroid_big_cooldown = 0
     nof_max_asteroid_big = 5
+    shots_pos = 0, 0
     #player_vel_x = 0
     #player_vel_y = 0
     #player_base_vel = 0
@@ -192,6 +193,45 @@ class Playership(pygame.sprite.Sprite):
         self.rect = self.image.get_rect(center=self.rect.center)
 
 
+class Shots(pygame.sprite.Sprite):
+    def __init__(self, pos_player_x, pos_player_y, vel_x, vel_y) -> None:
+        super().__init__()
+        self.vel_x = vel_x
+        self.vel_y = vel_y
+        self.pos_shots_x = pos_player_x
+        self.pos_shots_y = pos_player_y
+        self.image = pygame.image.load(os.path.join(Settings.path_image, "shots.png")).convert_alpha()
+        self.rect = self.image.get_rect()
+        self.rect.centerx = self.pos_shots_x
+        self.rect.centery = self.pos_shots_y
+
+    def draw(self, screen):
+        screen.blit(self.image, self.rect)
+
+    def update(self):
+        self.rect.move_ip((self.vel_x, self.vel_y))
+        self.accelaration()
+        self.off_map()
+
+    def off_map(self):
+        if self.rect.top + self.vel_y > Settings.window_height:
+            self.kill()
+        if self.rect.bottom + self.vel_y < 0:
+            self.kill()
+        if self.rect.right + self.vel_x < 0:
+            self.kill()
+        if self.rect.left + self.vel_x > Settings.window_width:
+            self.kill()
+
+    def accelaration(self):
+        self.vel_x = self.vel_x - math.sin(math.radians(Settings.rotate))
+        self.vel_y = self.vel_y - math.cos(math.radians(Settings.rotate))
+        #if self.vel_x > 3:
+            #self.vel_x = self.vel_x
+        #elif self.vel_y > 3:
+            #self.vel_y = self.vel_y
+
+
 class Game(object):
     def __init__(self) -> None:
         super().__init__()
@@ -200,8 +240,10 @@ class Game(object):
         self.screen = pygame.display.set_mode(Settings.dim())
         pygame.display.set_caption(Settings.title)
         self.clock = pygame.time.Clock()
-        self.playership = pygame.sprite.GroupSingle(Playership())
+        self.player = Playership()
+        self.playership = pygame.sprite.GroupSingle(self.player)
         self.asteroid = pygame.sprite.Group(Asteroid())
+        self.shots = pygame.sprite.Group()
         self.running = False
 
     def run(self) -> None:
@@ -221,9 +263,15 @@ class Game(object):
             if len(self.asteroid.sprites()) < Settings.nof_max_asteroid_big:
                 self.asteroid.add(Asteroid())
 
+    def shoting_shots(self):
+        if len(self.shots.sprites()) <= 10:
+            self.shots.add(Shots(self.player.rect.centerx, self.player.rect.centery, self.player.x_vel, self.player.y_vel))
+
     def groupcollide(self):
         if pygame.sprite.groupcollide(self.playership, self.asteroid, False, False, pygame.sprite.collide_rect):
             self.running = False
+        pygame.sprite.groupcollide(self.asteroid, self.shots, True, False, pygame.sprite.collide_rect)
+
 
     def watch_for_events(self) -> None:
         for event in pygame.event.get():
@@ -232,15 +280,13 @@ class Game(object):
             elif event.type == KEYDOWN:
                 if event.key == K_ESCAPE:
                     self.running = False
+                elif event.key == K_SPACE:
+                    self.shoting_shots()
                 elif event.key == K_LEFT:
                     if Settings.rotate <= 359:
                         Settings.rotate += 22.5
-                        #Settings.player_vel_x = Settings.player_vel_x - math.sin(math.radians(Settings.rotate))
-                        #Settings.player_vel_y = Settings.player_vel_y - math.cos(math.radians(Settings.rotate))
                     else:
                         Settings.rotate = 22.5
-                        #Settings.player_vel_x = Settings.player_vel_x - math.sin(math.radians(Settings.rotate))
-                        #Settings.player_vel_y = Settings.player_vel_y - math.cos(math.radians(Settings.rotate))
                 elif event.key == K_RIGHT:
                     if Settings.rotate >= 1:
                         Settings.rotate -= 22.5
@@ -250,12 +296,14 @@ class Game(object):
     def update(self) -> None:
         self.spawning_of_asteroids()
         self.playership.update()
+        self.shots.update()
         self.asteroid.update()
         self.groupcollide()
 
     def draw(self) -> None:
         self.background.draw(self.screen)
         self.playership.draw(self.screen)
+        self.shots.draw(self.screen)
         self.asteroid.draw(self.screen)
         pygame.display.flip()
 
@@ -266,4 +314,3 @@ class Game(object):
 if __name__ == '__main__':
     anim = Game()
     anim.run()
-
